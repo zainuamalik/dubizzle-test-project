@@ -55,19 +55,23 @@ def update_user(
     return updated_user
 
 # Endpoint: Delete a user by ID (Admin only)
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}", status_code=status.HTTP_200_OK)
 def delete_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+        user_id: int,
+        db: Session = Depends(get_db),
+        current_user=Depends(get_current_user)
 ):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Not authorized")
+
     service = UserService(db)
     success = service.delete_user(user_id)
+
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
-    return None
+
+    # Return a custom message with a 200 OK status
+    return {"message": f"User with ID: {user_id} has been deleted"}
 
 # Endpoint: List all users (Admin only)
 @router.get("/", response_model=list[UserResponse])
