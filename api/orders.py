@@ -1,4 +1,3 @@
-# api/orders.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -20,6 +19,42 @@ def create_order(
     order = service.create_order(current_user.id, order_data)
     return order
 
+# Endpoint: List orders placed by the currently logged-in customer
+@router.get("/me", response_model=list[OrderResponse])
+def list_my_orders(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    service = OrderService(db)
+    # Fetch orders placed by the currently logged-in user (using current_user.id)
+    orders = service.list_orders_by_user(current_user.id)
+    return orders
+
+# Endpoint: List orders placed by a specific user (Admin only)
+@router.get("/users/{user_id}", response_model=list[OrderResponse])
+def list_orders_by_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    service = OrderService(db)
+    orders = service.list_orders_by_user(user_id)
+    return orders
+
+# Endpoint: List all orders (Admin only)
+@router.get("/", response_model=list[OrderResponse])
+def list_all_orders(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    service = OrderService(db)
+    orders = service.list_all_orders()  # Returns a list of orders from the DB
+    return orders
+
 # Endpoint: Retrieve order details by ID (Admin or customer who owns the order)
 @router.get("/{order_id}", response_model=OrderResponse)
 def get_order(
@@ -31,7 +66,7 @@ def get_order(
     order = service.get_order(order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    # Admins or the user who owns the order can access
+    # Allow access if the user is an admin or if they own the order
     if current_user.role != "admin" and current_user.id != order.user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
     return order
@@ -54,7 +89,7 @@ def update_order(
     return updated_order
 
 # Endpoint: Delete an order by ID (Admin or the owner)
-@router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{order_id}", status_code=status.HTTP_200_OK)
 def delete_order(
     order_id: int,
     db: Session = Depends(get_db),
@@ -69,40 +104,4 @@ def delete_order(
     success = service.delete_order(order_id)
     if not success:
         raise HTTPException(status_code=400, detail="Could not delete order")
-    return None
-
-# Endpoint: List all orders (Admin only)
-@router.get("/", response_model=list[OrderResponse])
-def list_all_orders(
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Not authorized")
-    service = OrderService(db)
-    # Implement a list_all_orders method in OrderService returning list[Order]
-    orders = service.list_all_orders()  # Ensure this returns orders from the DB
-    return orders
-
-# Endpoint: List orders placed by a specific user (Admin only)
-@router.get("/users/{user_id}", response_model=list[OrderResponse])
-def list_orders_by_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Not authorized")
-    service = OrderService(db)
-    orders = service.list_orders_by_user(user_id)  # Implement this method to query orders by user_id
-    return orders
-
-# Endpoint: List orders placed by the currently logged-in customer
-@router.get("/me", response_model=list[OrderResponse])
-def list_my_orders(
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    service = OrderService(db)
-    orders = service.list_orders_by_user(current_user.id)
-    return orders
+    return {"message": f"Order with ID: {order_id} has been deleted"}
