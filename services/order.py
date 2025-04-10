@@ -1,18 +1,21 @@
-# services/order.py
 from sqlalchemy.orm import Session
 from database.models.orders import Order
 from pydantic import BaseModel
+
 
 class OrderCreate(BaseModel):
     total_amount: float
     status: str = "pending"
 
+
 class OrderUpdate(BaseModel):
     status: str | None = None
+
 
 class OrderService:
     def __init__(self, db: Session):
         self.db = db
+
 
     def create_order(self, user_id: int, order_data: OrderCreate) -> Order:
         new_order = Order(
@@ -25,8 +28,10 @@ class OrderService:
         self.db.refresh(new_order)
         return new_order
 
+
     def get_order(self, order_id: int) -> Order | None:
         return self.db.query(Order).filter(Order.id == order_id).first()
+
 
     def update_order(self, order_id: int, order_data: OrderUpdate) -> Order | None:
         order = self.get_order(order_id)
@@ -38,6 +43,7 @@ class OrderService:
         self.db.refresh(order)
         return order
 
+
     def delete_order(self, order_id: int) -> bool:
         order = self.get_order(order_id)
         if not order:
@@ -46,10 +52,10 @@ class OrderService:
         self.db.commit()
         return True
 
-    # List all orders (Admin only)
+
     def list_all_orders(self) -> list[Order]:
         return self.db.query(Order).all()
 
-    # List orders by a specific user's id
+
     def list_orders_by_user(self, user_id: int) -> list[Order]:
         return self.db.query(Order).filter(Order.user_id == user_id).all()

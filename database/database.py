@@ -2,7 +2,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from config.settings import settings
 
-
 DATABASE_URL = settings.DATABASE_URL
 
 # Create the database engine (establish connection with the database)
