@@ -16,5 +16,6 @@ class OrderResponse(BaseModel):
     total_amount: float
     status: str
 
+
     class Config:
         orm_mode = True

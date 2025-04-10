@@ -1,5 +1,4 @@
 from logging.config import fileConfig
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from database.models import orders, users, roles, privileges, role_privileges

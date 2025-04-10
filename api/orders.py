@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
 from middleware.dependencies import get_db, get_current_user
 from services.order import OrderService, OrderCreate, OrderUpdate
-from validators.orders import OrderResponse  # Pydantic response model for orders
+from validators.orders import OrderResponse
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 

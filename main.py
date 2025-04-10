@@ -7,6 +7,7 @@ from services.user import UserService, UserCreate
 from api import auth, users, orders
 from contextlib import asynccontextmanager
 
+
 # Seed function to ensure an admin user exists.
 def seed_admin_user():
     db: Session = SessionLocal()
@@ -27,7 +28,7 @@ def seed_admin_user():
     finally:
         db.close()
 
-# Define lifespan as FastAPI expects
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Create tables if they don't exist
@@ -35,12 +36,13 @@ async def lifespan(app: FastAPI):
     seed_admin_user()
     yield
 
-# Create the FastAPI app with lifespan
+
 app = FastAPI(title="User and Order Management API", lifespan=lifespan)
 
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(orders.router)
+
 
 @app.get("/")
 def root():

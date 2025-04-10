@@ -1,7 +1,5 @@
-# api/users.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
 from middleware.dependencies import get_db, get_current_user
 from services.user import UserService, UserCreate, UserUpdate
 from validators.users import UserResponse  # Pydantic response model for users
